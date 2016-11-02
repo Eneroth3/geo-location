@@ -129,13 +129,50 @@ module EneGeoLocation
     if scaled?(tr_change)
       # Scaling the terrain group is used for extending and cropping the terrain.
 
-      # get horizontal bounds...
-      bb = terrain_group.bounds
-      p bb.width  # x
-      p bb.height # y
-      p bb.depth  # x
-      # copy from terrain_data_group...
-      # crop...
+      # Remember current bounds.
+      bb  = terrain_group.definition.bounds
+      min = bb.min
+      max = bb.max
+      
+      terrain_group.entities.clear!
+      
+      # Copy terrain from terrain_data_group into the same location in the 
+      # terrain_group.
+      d  = terrain_data_group.definition
+      tr = terrain_group.transformation.inverse * terrain_data_group.transformation
+      terrain_copy = terrain_group.entities.add_instance(d, tr)
+      terrain_copy.explode
+      
+      # Extend saved bounds vertically to fit terrain. Terrain should only be
+      # cropped horizontally.
+      bb    = terrain_group.definition.bounds
+      min.z = bb.min.z
+      max.z = bb.max.z
+      
+      # Draw box according to the desired bounds and crop terrain to it.
+      
+      cut_box = terrain_group.entities.add_group
+      pts = [
+        min,
+        [max.x, min.y, min.z],
+        [max.x, max.y, min.z],
+        [min.x, max.y, min.z]
+      ]
+      face = cut_box.entities.add_face(pts)
+      face.reverse! unless face.normal.samedirection?(Z_AXIS)
+      face.pushpull(max.z)
+      
+      terrain_group.entities.intersect_with(false, IDENTITY, terrain_group.entities, IDENTITY, true, cut_box)
+      
+      terrain_group.entities.erase_entities(
+        terrain_group.entities.select { |e|
+          next unless e.is_a?(Sketchup::Edge)
+          midpoint = Geom.linear_combination(0.5, e.start.position, 0.5, e.end.position)
+          !cut_box.bounds.contains?(midpoint)
+        }
+      )
+      
+      cut_box.erase!
 
     else
       # Moving or rotating the terrain group is used to change the model
