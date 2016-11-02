@@ -1,0 +1,97 @@
+# Check if a transformation involves scaling in any axis.
+#
+# transformation - A Transformation object to test.
+#
+# Returns true or false.
+def scaled?(transformation)
+
+  coords = [
+    Geom::Vector3d.new(1, 0, 0),
+    Geom::Vector3d.new(0, 1, 0),
+    Geom::Vector3d.new(0, 0, 1)
+  ]
+
+  !coords.all? { |c| c.transform(transformation).length == 1.to_l }
+  
+end
+
+# Get the transformation that has been applied to instance since this method
+# was last called. The first time times method runs for an instance it's
+# initializing and don't return a transformation.
+#
+# instance - A ComponentInstance or Group object.
+#
+# Returns Transformation object or nil.
+def last_transformation(instance)
+
+  old_tr_ary = instance.get_attribute("ene_geo_location_mockup", "tr_ary")
+  instance.set_attribute("ene_geo_location_mockup", "tr_ary", instance.transformation.to_a)
+  
+  return unless old_tr_ary
+  
+  old_tr = Geom::Transformation.new(old_tr_ary)
+  
+  instance.transformation * old_tr.inverse
+
+end
+
+# Check if a transformation is the identity matrix (within some tolerance).
+# The native Transformation#identity? is broken and returns false for all
+# transformations that has been modified since created from Transformation#new.
+#
+# transformation - A Transformation object.
+#
+# Returns true or false.
+def identity_transformation?(transformation)
+
+  ary0 = transformation.to_a
+  ary1 = Geom::Transformation.new.to_a
+  
+  ary0.each_with_index { |v, i| return(false) if v != ary1[i].to_l }
+  
+  true
+
+end
+
+# Updates the group terrain is drawn to to. Called from observer when the group
+# containing the terrain is modified (e.g. moved, rotated or scaled by the
+# user).
+#
+# Returns nothin.
+def update_terrain
+
+  model    = Sketchup.active_model
+  entities = model.entities
+  
+  terrain_group = entities.find { |e| e.is_a?(Sketchup::Group) && e.name = "Terrain" }
+  
+  # For the mock up terrain data is simply defined in a hidden group in the
+  # model. To "draw" to the visible terrain group the content of this hidden
+  # group is copied into it and cropped to its horizontal bounds.
+  terrain_data_group = entities.find { |e| e.is_a?(Sketchup::Group) && e.name = "Terrain Data" }
+    
+  tr_change = last_transformation(terrain_group)
+  return if identity_transformation?(tr_change)
+  
+  if scaled?(tr_change)
+    # Scaling the terrain group is used for extending and cropping the terrain.
+    
+    # get horizontal bounds...
+    # copy from terrain_data_group...
+    # crop...
+    
+  else
+    # Moving or rotating the terrain group is used to change the model
+    # geo-location information.
+    
+    # north vector from terrain y...
+    # geo-location point from transformed origin...
+    
+    # The hidden terrain group is moved to match the new geo location.
+    terrain_data_group.transform! tr_change
+  
+  end
+
+end
+
+# Observer stuff...
