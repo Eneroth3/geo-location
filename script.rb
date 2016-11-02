@@ -202,9 +202,11 @@ module EneGeoLocation
 
     def onChangeEntity(_)
       return if @@disabled
-      @@disabled = true
-      EneGeoLocation.update_terrain
-      @@disabled = false
+      UI.start_timer(0) do
+        @@disabled = true
+        EneGeoLocation.update_terrain
+        @@disabled = false
+      end
     end
 
   end
