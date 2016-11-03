@@ -36,7 +36,7 @@ module EneGeoLocation
     vector1 = project_vector(vector1, normal)
 
     a = vector0.angle_between(vector1)
-    return 0 if a == 0
+    return a if a == 0 || a == Math::PI
     a *= -1 if (vector1 * vector0).samedirection? normal
 
     a
