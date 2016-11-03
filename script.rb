@@ -9,7 +9,7 @@
 # a group in model, meaning it can only be used with the attached SketchUp
 # model.
 
-module EneGeoLocation
+module EneGeoLocationMockup
 
   # Project vector to plane.
   #
@@ -80,16 +80,16 @@ module EneGeoLocation
 
   # Get the transformation that has been applied to instance since this method
   # was last called. The first time times method runs for an instance it's
-  # initializing and don't return a transformation.
+  # initializing and doesn't return any transformation.
   #
   # instance - A ComponentInstance or Group object.
   #
   # Returns Transformation object or nil.
   def self.last_transformation(instance)
 
-    old_tr_ary = instance.get_attribute("ene_geo_location_mockup", "tr_ary")
+    old_tr_ary = instance.get_attribute(self.to_s, "tr_ary")
     new_tr_ary = instance.transformation.to_a
-    instance.set_attribute("ene_geo_location_mockup", "tr_ary", new_tr_ary)
+    instance.set_attribute(self.to_s, "tr_ary", new_tr_ary)
 
     return unless old_tr_ary
 
@@ -204,7 +204,7 @@ module EneGeoLocation
       return if @@disabled
       UI.start_timer(0) do
         @@disabled = true
-        EneGeoLocation.update_terrain
+        EneGeoLocationMockup.update_terrain
         @@disabled = false
       end
     end
