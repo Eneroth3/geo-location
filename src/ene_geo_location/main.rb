@@ -65,9 +65,7 @@ module Eneroth
     # @param scaling [Geom::Transformation]
     def self.on_scale(scaling)
       # Remember current bounds.
-      bb  = group.definition.bounds
-      min = bb.min
-      max = bb.max
+      bounds = group.definition.bounds
 
       group.entities.clear!
 
@@ -78,36 +76,13 @@ module Eneroth
       terrain_copy = group.entities.add_instance(d, tr)
       terrain_copy.explode
 
-      # Extend saved bounds vertically to fit terrain. Terrain should only be
+      # Extend bounds vertically to fit terrain. Terrain should only be
       # cropped horizontally.
-      bb    = group.definition.bounds
-      min.z = bb.min.z
-      max.z = bb.max.z
+      reference_bounds = data_group.definition.bounds
+      bounds.add(bounds.min.tap { |pt| pt.z = reference_bounds.min.z })
+      bounds.add(bounds.max.tap { |pt| pt.z = reference_bounds.max.z })
 
-      # Draw box according to the desired bounds and crop terrain to it.
-
-      cut_box = group.entities.add_group
-      pts = [
-        min,
-        [max.x, min.y, min.z],
-        [max.x, max.y, min.z],
-        [min.x, max.y, min.z]
-      ]
-      face = cut_box.entities.add_face(pts)
-      face.reverse! unless face.normal.samedirection?(Z_AXIS)
-      face.pushpull(max.z)
-
-      group.entities.intersect_with(false, IDENTITY, group.entities, IDENTITY, true, cut_box)
-
-      group.entities.erase_entities(
-        group.entities.select { |e|
-          next unless e.is_a?(Sketchup::Edge)
-          midpoint = Geom.linear_combination(0.5, e.start.position, 0.5, e.end.position)
-          !cut_box.bounds.contains?(midpoint)
-        }
-      )
-
-      cut_box.erase!
+      crop(group.entities, bounds)
     end
 
     # Called when the terrain is moved (rotated or translated).
@@ -125,6 +100,35 @@ module Eneroth
 
       # The hidden terrain group is moved to match the new geo location.
       data_group.transform!(movement)
+    end
+
+    # Crop entities to a new bounding box.
+    #
+    # @param entities [Sketchup::Entities]
+    # @param bounds [Geom::BoundingBox]
+    def self.crop(entities, bounds)
+      box = entities.add_group
+      pts = [
+        bounds.min,
+        [bounds.max.x, bounds.min.y, bounds.min.z],
+        [bounds.max.x, bounds.max.y, bounds.min.z],
+        [bounds.min.x, bounds.max.y, bounds.min.z]
+      ]
+      face = box.entities.add_face(pts)
+      face.reverse! unless face.normal.samedirection?(Z_AXIS)
+      face.pushpull(bounds.max.z)
+
+      entities.intersect_with(false, IDENTITY, entities, IDENTITY, true, box)
+
+      outside = entities.select do |edge|
+        next unless edge.is_a?(Sketchup::Edge)
+        midpoint = Geom.linear_combination(0.5, edge.start.position, 0.5,
+                                           edge.end.position)
+        !box.bounds.contains?(midpoint)
+      end
+      entities.erase_entities(outside)
+
+      box.erase!
     end
 
     # Attach the required observer.
