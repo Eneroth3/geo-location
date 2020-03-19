@@ -68,7 +68,7 @@ module Eneroth
     # Called when the terrain is scaled.
     # Redraws terrain to fill up its new horizontal bounds.
     #
-    # @param scaling [Geom::Transformation]
+    # @param _scaling [Geom::Transformation]
     def self.on_scale(_scaling)
       # Remember current bounds.
       bounds = group.definition.bounds
