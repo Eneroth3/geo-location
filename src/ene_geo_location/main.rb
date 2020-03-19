@@ -155,7 +155,7 @@ module Eneroth
         init_transform_tracking(group)
         group.add_observer(TerrainObserver.new)
       else
-        raise "This script  must run in the attached model."
+        warn "Not a valid Eneroth Geo Location Mockup model."
       end
     end
 
