@@ -28,7 +28,6 @@
 module Eneroth
   # Eneroth Geo Location Mockup
   module GeoLocation
-
     # Project vector to plane.
     #
     # vector - Vector3d to project.
@@ -36,9 +35,7 @@ module Eneroth
     #
     # Returns vector.
     def self.project_vector(vector, normal = Z_AXIS)
-
       normal * vector * normal
-
     end
 
     # Find counter clockwise angles in plane between vector.
@@ -49,7 +46,6 @@ module Eneroth
     #
     # Returns angle in radians as Float.
     def self.angle_in_plane(vector0, vector1, normal = Z_AXIS)
-
       vector0 = project_vector(vector0, normal)
       vector1 = project_vector(vector1, normal)
 
@@ -58,7 +54,6 @@ module Eneroth
       a *= -1 if (vector1 * vector0).samedirection? normal
 
       a
-
     end
 
     # Check if a transformation involves scaling in any axis.
@@ -67,7 +62,6 @@ module Eneroth
     #
     # Returns true or false.
     def self.scaled?(transformation)
-
       coords = [
         Geom::Vector3d.new(1, 0, 0),
         Geom::Vector3d.new(0, 1, 0),
@@ -75,7 +69,6 @@ module Eneroth
       ]
 
       !coords.all? { |c| c.transform(transformation).length == 1.to_l }
-
     end
 
     # Check if a transformation is the identity matrix (within some tolerance).
@@ -86,14 +79,12 @@ module Eneroth
     #
     # Returns true or false.
     def self.identity_transformation?(transformation)
-
       ary0 = transformation.to_a
       ary1 = Geom::Transformation.new.to_a
 
       ary0.each_with_index { |v, i| return(false) if v != ary1[i].to_l }
 
       true
-
     end
 
     # Get the transformation that has been applied to instance since this method
@@ -104,7 +95,6 @@ module Eneroth
     #
     # Returns Transformation object or nil.
     def self.last_transformation(instance)
-
       old_tr_ary = instance.get_attribute(self.to_s, "tr_ary")
       new_tr_ary = instance.transformation.to_a
       instance.set_attribute(self.to_s, "tr_ary", new_tr_ary)
@@ -114,7 +104,6 @@ module Eneroth
       old_tr = Geom::Transformation.new(old_tr_ary)
 
       instance.transformation * old_tr.inverse
-
     end
 
     # Updates the group terrain is drawn to to. Called from observer when the group
@@ -123,7 +112,6 @@ module Eneroth
     #
     # Returns nothin.
     def self.update_terrain
-
       model      = Sketchup.active_model
       entities   = model.entities
       shadowinfo = model.shadow_info
@@ -151,24 +139,24 @@ module Eneroth
         bb  = terrain_group.definition.bounds
         min = bb.min
         max = bb.max
-        
+
         terrain_group.entities.clear!
-        
-        # Copy terrain from terrain_data_group into the same location in the 
+
+        # Copy terrain from terrain_data_group into the same location in the
         # terrain_group.
         d  = terrain_data_group.definition
         tr = terrain_group.transformation.inverse * terrain_data_group.transformation
         terrain_copy = terrain_group.entities.add_instance(d, tr)
         terrain_copy.explode
-        
+
         # Extend saved bounds vertically to fit terrain. Terrain should only be
         # cropped horizontally.
         bb    = terrain_group.definition.bounds
         min.z = bb.min.z
         max.z = bb.max.z
-        
+
         # Draw box according to the desired bounds and crop terrain to it.
-        
+
         cut_box = terrain_group.entities.add_group
         pts = [
           min,
@@ -179,9 +167,9 @@ module Eneroth
         face = cut_box.entities.add_face(pts)
         face.reverse! unless face.normal.samedirection?(Z_AXIS)
         face.pushpull(max.z)
-        
+
         terrain_group.entities.intersect_with(false, IDENTITY, terrain_group.entities, IDENTITY, true, cut_box)
-        
+
         terrain_group.entities.erase_entities(
           terrain_group.entities.select { |e|
             next unless e.is_a?(Sketchup::Edge)
@@ -189,9 +177,8 @@ module Eneroth
             !cut_box.bounds.contains?(midpoint)
           }
         )
-        
-        cut_box.erase!
 
+        cut_box.erase!
       else
         # Moving or rotating the terrain group is used to change the model
         # geo-location information.
@@ -207,15 +194,12 @@ module Eneroth
 
         # The hidden terrain group is moved to match the new geo location.
         terrain_data_group.transform!(tr_change)
-
       end
 
       model.commit_operation
-
     end
 
     class MyEntityObserver < Sketchup::EntityObserver
-
       @@disabled = false
 
       def onChangeEntity(_)
@@ -226,7 +210,6 @@ module Eneroth
           @@disabled = false
         end
       end
-
     end
 
     unless defined?(INITALIZED)
@@ -242,9 +225,6 @@ module Eneroth
       else
         raise "This script  must run in the attached model."
       end
-
     end
-
   end
-
 end
