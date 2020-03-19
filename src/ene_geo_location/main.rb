@@ -84,7 +84,8 @@ module Eneroth
     #
     # @param movement [Geom::Transformation]
     def self.on_move(movement)
-      Sketchup.active_model.shadow_info["NorthAngle"] = MathHelper.angle_in_plane(group.transformation.yaxis, Y_AXIS).radians
+      self.north_angle =
+        MathHelper.angle_in_plane(group.transformation.yaxis, Y_AXIS)
 
       # TODO: setting NorthAngle is not a transaction (not included in the
       # operator) and therefore isn't reset when user undo. Use a ModelObserver
@@ -94,6 +95,20 @@ module Eneroth
 
       # The hidden terrain group is moved to match the new geo location.
       data_group.transform!(movement)
+    end
+
+    # Get the model north angle.
+    #
+    # @return [Numeric] Radians cc from model Y axis.
+    def self.north_angle
+      Sketchup.active_model.shadow_info["NorthAngle"].degrees
+    end
+
+    # Set the model north angle.
+    #
+    # @param north_angle [Numeric] Radians cc from model Y axis.
+    def self.north_angle=(north_angle)
+      Sketchup.active_model.shadow_info["NorthAngle"] = north_angle.radians
     end
 
     # Move entities from one container to another.
