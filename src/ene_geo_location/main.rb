@@ -1,6 +1,11 @@
+# frozen_string_literal: true
+
 module Eneroth
   module GeoLocation
     Sketchup.require "#{PLUGIN_ROOT}/math_helper.rb"
+
+    # Name of plugin's attribute dictionary.
+    ATTR_DIR = PLUGIN_ID
 
     # Get terrain group.
     #
@@ -32,9 +37,9 @@ module Eneroth
     #
     # @return [Transformation]
     def self.transformation_change(instance)
-      old_array = instance.get_attribute(self.to_s, "tr_ary")
+      old_array = instance.get_attribute(ATTR_DIR, "transformation")
       new_array = instance.transformation.to_a
-      instance.set_attribute(self.to_s, "tr_ary", new_array)
+      instance.set_attribute(ATTR_DIR, "transformation", new_array)
 
       instance.transformation * Geom::Transformation.new(old_array).inverse
     end
@@ -45,7 +50,8 @@ module Eneroth
     #
     # @param instance [Sketchup::Group, Sketchup::ComponentInstance]
     def self.init_transform_tracking(instance)
-      instance.set_attribute(self.to_s, "tr_ary", instance.transformation.to_a)
+      instance.set_attribute(ATTR_DIR, "transformation",
+                             instance.transformation.to_a)
     end
 
     # Called when the terrain entity is changed.
@@ -63,7 +69,7 @@ module Eneroth
     # Redraws terrain to fill up its new horizontal bounds.
     #
     # @param scaling [Geom::Transformation]
-    def self.on_scale(scaling)
+    def self.on_scale(_scaling)
       # Remember current bounds.
       bounds = group.definition.bounds
 
@@ -138,6 +144,7 @@ module Eneroth
 
       outside = entities.select do |edge|
         next unless edge.is_a?(Sketchup::Edge)
+
         midpoint = Geom.linear_combination(0.5, edge.start.position, 0.5,
                                            edge.end.position)
         !box.bounds.contains?(midpoint)
@@ -161,14 +168,15 @@ module Eneroth
 
     # @private
     class TerrainObserver < Sketchup::EntityObserver
-      @@disabled = false
+      @disabled = false
 
       def onChangeEntity(*_args)
-        return if @@disabled
+        return if @disabled
+
         UI.start_timer(0) do
-          @@disabled = true
+          @disabled = true
           GeoLocation.on_change
-          @@disabled = false
+          @disabled = false
         end
       end
     end

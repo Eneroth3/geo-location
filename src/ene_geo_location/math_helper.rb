@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Eneroth
   module GeoLocation
     # Math related functionality.
@@ -15,22 +17,21 @@ module Eneroth
 
       # Check if a transformation involves scaling in any axis.
       #
-      # transformation - A Transformation object to test.
+      # @param transformation [Geom::Transformation]
       #
-      # Returns true or false.
+      # @return [Boolean]
       def self.scaled?(transformation)
         axes = [X_AXIS, Y_AXIS, Z_AXIS]
 
         !axes.all? { |a| a.transform(transformation).length == 1.to_l }
       end
 
-      # Check if a transformation is the identity matrix (within some tolerance).
-      # The native Transformation#identity? is broken and returns false for all
-      # transformations that has been modified since created from Transformation#new.
+      # Check if transformation is the identity matrix.
+      # Up until SketchUp 2018 the native API method has been broken.
       #
-      # transformation - A Transformation object.
+      # @param transformation [Geom::Transformation]
       #
-      # Returns true or false.
+      # @return [Boolean]
       def self.identity_transformation?(transformation)
         ary0 = transformation.to_a
         ary1 = Geom::Transformation.new.to_a
