@@ -68,13 +68,7 @@ module Eneroth
       bounds = group.definition.bounds
 
       group.entities.clear!
-
-      # Copy terrain from data_group into the same location in the
-      # group.
-      d  = data_group.definition
-      tr = group.transformation.inverse * data_group.transformation
-      terrain_copy = group.entities.add_instance(d, tr)
-      terrain_copy.explode
+      copy_into(data_group, group)
 
       # Extend bounds vertically to fit terrain. Terrain should only be
       # cropped horizontally.
@@ -100,6 +94,13 @@ module Eneroth
 
       # The hidden terrain group is moved to match the new geo location.
       data_group.transform!(movement)
+    end
+
+    # Move entities from one container to another.
+    def self.copy_into(source, target)
+      transformation = target.transformation.inverse * source.transformation
+      copy = target.entities.add_instance(source.definition, transformation)
+      copy.explode
     end
 
     # Crop entities to a new bounding box.
