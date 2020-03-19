@@ -168,16 +168,14 @@ module Eneroth
 
     # @private
     class TerrainObserver < Sketchup::EntityObserver
-      @disabled = false
+      @inhibit = false
 
       def onChangeEntity(*_args)
-        return if @disabled
+        return if @inhibit
 
-        UI.start_timer(0) do
-          @disabled = true
-          GeoLocation.on_change
-          @disabled = false
-        end
+        @inhibit = true
+        GeoLocation.on_change
+        @inhibit = false
       end
     end
 
