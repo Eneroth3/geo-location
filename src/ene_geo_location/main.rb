@@ -212,8 +212,8 @@ module Eneroth
       end
     end
 
-    unless defined?(INITALIZED)
-      INITALIZED = true
+    unless @loaded
+      @loaded = true
 
       model         = Sketchup.active_model
       entities      = model.entities
