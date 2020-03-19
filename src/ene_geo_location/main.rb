@@ -85,7 +85,7 @@ module Eneroth
     # @param movement [Geom::Transformation]
     def self.on_move(movement)
       self.north_angle =
-        MathHelper.angle_in_plane(group.transformation.yaxis, Y_AXIS)
+        MathHelper.planar_angle(group.transformation.yaxis, Y_AXIS)
 
       # TODO: setting NorthAngle is not a transaction (not included in the
       # operator) and therefore isn't reset when user undo. Use a ModelObserver

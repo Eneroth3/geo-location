@@ -2,32 +2,15 @@ module Eneroth
   module GeoLocation
     # Math related functionality.
     module MathHelper
-      # Project vector to plane.
+      # Find counter clockwise angle in plane between vectors.
       #
-      # vector - Vector3d to project.
-      # normal - Normal of plane to project vector to (default: Z_AXIS).
+      # @param minuend [Geom::Vector3d]
+      # @param subtrahend [Geom::Vector3d]
+      # @param normal [Geom::Vector3d]
       #
-      # Returns vector.
-      def self.project_vector(vector, normal = Z_AXIS)
-        normal * vector * normal
-      end
-
-      # Find counter clockwise angles in plane between vector.
-      #
-      # vector0 - First Vector3d to test.
-      # vector1 - Second Vector3d to test.
-      # normal  - Normal of the plane to find angle in (default: Z_AXIS).
-      #
-      # Returns angle in radians as Float.
-      def self.angle_in_plane(vector0, vector1, normal = Z_AXIS)
-        vector0 = project_vector(vector0, normal)
-        vector1 = project_vector(vector1, normal)
-
-        a = vector0.angle_between(vector1)
-        return a if a == 0 || a == Math::PI
-        a *= -1 if (vector1 * vector0).samedirection? normal
-
-        a
+      # @return [Numeric] Angle in radians.
+      def self.planar_angle(minuend, subtrahend, normal = Z_AXIS)
+        Math.atan2((minuend * subtrahend) % normal, subtrahend % minuend)
       end
 
       # Check if a transformation involves scaling in any axis.
