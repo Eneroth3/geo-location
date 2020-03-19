@@ -3,6 +3,7 @@
 module Eneroth
   module GeoLocation
     Sketchup.require "#{PLUGIN_ROOT}/math_helper.rb"
+    Sketchup.require "#{PLUGIN_ROOT}/geo.rb"
 
     # Name of plugin's attribute dictionary.
     ATTR_DIR = PLUGIN_ID
@@ -90,7 +91,7 @@ module Eneroth
     #
     # @param movement [Geom::Transformation]
     def self.on_move(movement)
-      self.north_angle =
+      Geo.north_angle =
         MathHelper.planar_angle(group.transformation.yaxis, Y_AXIS)
 
       # TODO: setting NorthAngle is not a transaction (not included in the
@@ -101,20 +102,6 @@ module Eneroth
 
       # The hidden terrain group is moved to match the new geo location.
       data_group.transform!(movement)
-    end
-
-    # Get the model north angle.
-    #
-    # @return [Numeric] Radians cc from model Y axis.
-    def self.north_angle
-      Sketchup.active_model.shadow_info["NorthAngle"].degrees
-    end
-
-    # Set the model north angle.
-    #
-    # @param north_angle [Numeric] Radians cc from model Y axis.
-    def self.north_angle=(north_angle)
-      Sketchup.active_model.shadow_info["NorthAngle"] = north_angle.radians
     end
 
     # Move entities from one container to another.
