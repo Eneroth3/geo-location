@@ -30,7 +30,8 @@ module Eneroth
         # REVIEW: Document height over what? Height over Earth ellipsoid?
         # HACK: Internal dictionary. Ideally SketchUp should have public API.
         model = Sketchup.active_model
-        model.get_attribute("GeoReference", "ModelTranslationZ", 0).to_l
+
+        (-model.get_attribute("GeoReference", "ModelTranslationZ", 0)).to_l
       end
 
       # Set model origin height.
@@ -40,8 +41,8 @@ module Eneroth
         # REVIEW: Document height over what? Height over Earth ellipsoid?
         # HACK: Internal dictionary.
         model = Sketchup.active_model
-        model.set_attribute("GeoReference", "ModelTranslationZ", height.to_f)
-        model.set_attribute("GeoReference", "ZValueCentered", height.to_f)
+        model.set_attribute("GeoReference", "ModelTranslationZ", -height.to_f)
+        model.set_attribute("GeoReference", "ZValueCentered", -height.to_f)
       end
 
       # Get model origin LatLong.
@@ -68,8 +69,8 @@ module Eneroth
       # @param movement [Geom::Transformation]
       def self.move_earth(movement)
         self.latlong = point_to_latlong(movement.inverse.origin)
-        Geo.north_angle += MathHelper.planar_angle(movement.yaxis, Y_AXIS)
-        # TODO: Set height!
+        self.height += movement.inverse.origin.z
+        self.north_angle += MathHelper.planar_angle(movement.yaxis, Y_AXIS)
 
         # Seems to correctly update what SketchUp's model#point_to_utm reports
         # but not what Model#point_to_latlong reports.
