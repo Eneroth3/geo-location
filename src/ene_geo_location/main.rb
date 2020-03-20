@@ -91,14 +91,12 @@ module Eneroth
     #
     # @param movement [Geom::Transformation]
     def self.on_move(movement)
-      Geo.north_angle =
-        MathHelper.planar_angle(group.transformation.yaxis, Y_AXIS)
+      Geo.move_earth(movement)
 
       # TODO: setting NorthAngle is not a transaction (not included in the
       # operator) and therefore isn't reset when user undo. Use a ModelObserver
       # to fetch north angle from terrain group on undo and redo.
-
-      # TODO: update lat and long based on the origin point of movement.
+      # Or maybe fetch from geo location attribute dictionary?
 
       # The hidden terrain group is moved to match the new geo location.
       data_group.transform!(movement)

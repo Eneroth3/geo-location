@@ -15,7 +15,12 @@ module Eneroth
       #
       # @param north_angle [Numeric] Radians cc from model Y axis.
       def self.north_angle=(north_angle)
-        Sketchup.active_model.shadow_info["NorthAngle"] = north_angle.radians
+        model = Sketchup.active_model
+        model.shadow_info["NorthAngle"] = north_angle.radians
+        # HACK: Internal dictionary.
+        # Seems not to be used when adding more imagery :( .
+        model.set_attribute("GeoReference", "GeoReferenceNorthAngle",
+                            north_angle.radians)
       end
 
       # Get model origin height.
@@ -33,9 +38,41 @@ module Eneroth
       # @param height [Length]
       def self.height=(height)
         # REVIEW: Document height over what? Height over Earth ellipsoid?
-        # HACK: Internal dictionary. Ideally SketchUp should have public API.
+        # HACK: Internal dictionary.
         model = Sketchup.active_model
         model.set_attribute("GeoReference", "ModelTranslationZ", height.to_f)
+        model.set_attribute("GeoReference", "ZValueCentered", height.to_f)
+      end
+
+      # Get model origin LatLong.
+      #
+      # @return [Geom::LatLong]
+      def self.latlong
+        point_to_latlong(ORIGIN)
+      end
+
+      # Get model origin LatLong.
+      #
+      # @return [Geom::LatLong]
+      def self.latlong=(latlong)
+        model = Sketchup.active_model
+        model.shadow_info["Latitude"] = latlong.latitude
+        model.shadow_info["Longitude"] = latlong.longitude
+        # HACK: Internal dictionary.
+        model.set_attribute("GeoReference", "Latitude", latlong.latitude)
+        model.set_attribute("GeoReference", "Longitude", latlong.longitude)
+      end
+
+      # Move earth relative to model.
+      #
+      # @param movement [Geom::Transformation]
+      def self.move_earth(movement)
+        self.latlong = point_to_latlong(movement.inverse.origin)
+        Geo.north_angle += MathHelper.planar_angle(movement.yaxis, Y_AXIS)
+        # TODO: Set height!
+
+        # Seems to correctly update what SketchUp's model#point_to_utm reports
+        # but not what Model#point_to_latlong reports.
       end
 
       # Get the height of a point.
@@ -46,7 +83,7 @@ module Eneroth
         (point.z + height).to_l
       end
 
-      # Convert point to latLong.
+      # Convert point to LatLong.
       # Takes north direction into account, unlike the native API as of now.
       #
       # @param point [Geom::Point3d]
@@ -75,6 +112,13 @@ module Eneroth
         point = point.transform(Geom::Transformation.new(ORIGIN, Z_AXIS, angle))
 
         model.point_to_utm(point)
+      end
+
+      # Get model origin UTM.
+      #
+      # @return [Geom::UTM]
+      def self.utm
+        point_to_utm(ORIGIN)
       end
     end
   end
