@@ -12,7 +12,9 @@ module Eneroth
     #
     # @return [Sketchup::Group]
     def self.group
-      @group ||= Sketchup.active_model.entities.find do |entity|
+      return @group if @group && @group.valid?
+
+      @group = Sketchup.active_model.entities.find do |entity|
         entity.is_a?(Sketchup::Group) && entity.name == "Terrain"
       end
     end
@@ -24,7 +26,9 @@ module Eneroth
     #
     # @return [Sketchup::Group]
     def self.data_group
-      @data_group ||= Sketchup.active_model.entities.find do |entity|
+      return @data_group if @data_group && @data_group.valid?
+
+      @data_group = Sketchup.active_model.entities.find do |entity|
         entity.is_a?(Sketchup::Group) && entity.name == "Terrain Data"
       end
     end
