@@ -74,9 +74,11 @@ module Eneroth
 
         # Seems to correctly update what SketchUp's model#point_to_utm reports
         # but not what Model#point_to_latlong reports.
+
+        # Only changes the height for Add More Imagery, not north or location :(
       end
 
-      # Get the height of a point.
+      # Get the geographical height of a point.
       #
       # @return [Length]
       def self.point_to_height(point)
