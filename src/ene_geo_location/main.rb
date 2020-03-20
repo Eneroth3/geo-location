@@ -143,7 +143,7 @@ module Eneroth
       box.erase!
     end
 
-    # Attach the required observer.
+    # Attach the required model observer.
     def self.attach_observer
       if group
         # REVIEW: Should be called when first inserting the terrain.
@@ -168,10 +168,31 @@ module Eneroth
       end
     end
 
+    # @private
+    class AppObserver < Sketchup::AppObserver
+      def onNewModel(model)
+        attach_observers(model)
+      end
+
+      def onOpenModel(model)
+        attach_observers(model)
+      end
+
+      def expectsStartupModelNotifications
+        true
+      end
+
+      private
+
+      def attach_observers(_model)
+        GeoLocation.attach_observer
+      end
+    end
+
     unless @loaded
       @loaded = true
 
-      attach_observer
+      Sketchup.add_observer(AppObserver.new)
     end
   end
 end
